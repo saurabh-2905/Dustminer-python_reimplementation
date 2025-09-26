@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "behaviour": "faulty_data",
+        "version": "version_3",
+        "thread": "single_thread",
+        "code": "mamba2",
+        "path": "/Users/saurabh/Documents/Nextcloud/work/Phd tasks/diagnosis tool/trace_data/mamba2/single_thread/version_3/faulty_data/trace_trial1"
+    },
+    "labels": {
+        "trace_trial1": [
+            [
+                1663,
+                1726,
+                88554,
+                91905,
+                1
+            ],
+            [
+                3429,
+                3484,
+                185987,
+                188557,
+                1
+            ],
+            [
+                5074,
+                5129,
+                276398,
+                278967,
+                1
+            ],
+            [
+                6016,
+                6070,
+                328151,
+                330718,
+                1
+            ],
+            [
+                7549,
+                7602,
+                412005,
+                414574,
+                1
+            ],
+            [
+                8075,
+                8130,
+                441234,
+                443802,
+                1
+            ],
+            [
+                10028,
+                10081,
+                547942,
+                550509,
+                1
+            ]
+        ]
+    }
+}

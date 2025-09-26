@@ -1,0 +1,8 @@
+Trial 1 - incorrect wakeup
+Trial 2 - 
+Trial 3
+
+Node sync
+Trial 4 - mac1 - trigger of sync
+Trial 5 - mac2 - sync with mac3
+Trial 6 - mac3 - sync with mac2

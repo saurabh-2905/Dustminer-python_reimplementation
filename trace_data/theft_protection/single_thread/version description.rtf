@@ -1,0 +1,118 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2818
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww16320\viewh11260\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs30 \cf0 __Version 1 :__\
+\
+- write data to flash every 10 lines of execution\
+Problems-\
+	- execution time is increasing gradually, might be due to the way data is written to flash\
+\
+\
+\
+\
+__Version 1.1:__\
+\
+Normal - \
+	- read the string from \'91log_check\'92 to check the previous log number instead of listing all the existing files\
+	- do not write the traces and logs to flash frequently only at the end\
+\
+Semantic error - \
+	- changed communication timer from 5 sec to 20 sec\
+\
+\
+\
+\
+__Version 1.2__\
+\
+Normal - \
+	- The timer triggers interrupt to indicate its completion. \
+	- The timer runs in separate thread and cannot log its activities\
+\
+\
+\
+\
+__Version 1.3:__\
+\
+Normal - \
+	- sleep for 500 ms instead of 2s after each reading\
+\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs42 \cf0 __Version 2:__\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs30 \cf0 \
+- setup a receiver to give ack of received msg, at tx node, detect the ack\
+- store the tx packets in msg queue and update it based on the ack\
+- adapt the code for expansion board to connect the DS18x20 sensor instead of using in-built pysense sensor (gives the flexibility to detach the sensor during runtime to observe the change in behaviour)\
+\
+Fault Scenarios:\
+\
+1. Semantic (change tx interval )\
+\
+1 Semantic (do not reset the flag)\
+	- sem_err.py: ln 118 - forgot to reset the \'91g_ack\'92 flag\
+\
+\
+2. Communication (Noisy channel/Rx. Down, leading to packet loss)\
+\
+\
+3. Sensor (sensor stops responding unexpectedly)\
+\
+\
+__Version 2.1__\
+\
+- run the script for normal behaviour for 2000 loops (around 35 minutes)\
+\
+\
+__Version 2.2__\
+\
+- collect 1000 time stamps for each variable compared to previous 500\
+- for event trace, collect timestamp as well\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs42 \cf0 __Version 3:__\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs30 \cf0 - collect values of variables\
+- map variables to integers on the node itself. The event traces will have numbers as events which can be mapped to variables using a dictionary\
+- collect 500 events in the logs instead of 1000 events\
+\
+\
+__Version 3.1__ (NOT DONE) \
+\
+- pre-defined dictionary to map var to integer, in order to have consistency for all traces. Otherwise, if we update the dict during runtime, some anomalies can cause change in the logging sequence of the variables thus mapping incorrectly between integer and variables. \
+- Instead we have trace correction script for post processing to make traces consistent.\
+\
+\
+__Version 3.2__ \
+- use json.dumps() along with file.write() to save the logs. This is done so that it works for different flavours of Micropython.\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs42 \cf0 \
+__Version 4:__\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs30 \cf0  - if any events repeats consecutively, we only store the first occurrence. This allows us to avoid unnecessary logging of events which can take up lot of memory.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 __Version 4.1__ \
+- implementation of fault detection (EI)
+\fs42 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+}

@@ -1,0 +1,4 @@
+Trial 1 - receiver/gateway failure - noise board after 300s
+Trial 2 - Sensor ageing - noise after 300s
+Trial 3 - Bitflip in code memory
+Trial 4 - Sensor Spikes and channel congestion, noise from start (7/12 sec)

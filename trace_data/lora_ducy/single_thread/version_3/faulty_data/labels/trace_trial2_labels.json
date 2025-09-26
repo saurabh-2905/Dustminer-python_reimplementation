@@ -1,0 +1,34 @@
+{
+    "metadata": {
+        "behaviour": "faulty_data",
+        "version": "version_3",
+        "thread": "single_thread",
+        "code": "lora_ducy",
+        "path": "/Users/saurabh/Documents/Nextcloud/work/Phd tasks/diagnosis tool/trace_data/lora_ducy/single_thread/version_3/faulty_data/trace_trial2"
+    },
+    "labels": {
+        "trace_trial2": [
+            [
+                252,
+                262,
+                21320,
+                40958,
+                5
+            ],
+            [
+                702,
+                712,
+                260252,
+                280452,
+                5
+            ],
+            [
+                1182,
+                1192,
+                437340,
+                458462,
+                5
+            ]
+        ]
+    }
+}
