@@ -5,7 +5,8 @@ import numpy as np
 from collections import defaultdict
 import time
 from sklearn.preprocessing import MinMaxScaler
-
+import re
+from typing import List, Tuple, Dict, Any
 
 # Read trace files and extracts event data
 # Paramters : trace_path (str) path to trace file
@@ -366,3 +367,165 @@ def get_correct_detections(detection, ground_truth):
                 y_pred += [1]
 
         return correct_pred, rest_pred, y_pred, y_true, false_negatives
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import re
+import json
+from pathlib import Path
+from typing import Dict, List, Tuple, Iterable, Union
+
+Filename = str
+Index = int
+Trial = int
+GTEntry = Union[List[int], Tuple[int, ...]]
+
+# ---------------------------
+# Parsers
+# ---------------------------
+
+def parse_test_filename(name: str) -> Tuple[Trial, Index, Index]:
+    """
+    Accepts filename (with or without extension) like:
+      - 'trace_trial1_179-229'
+      - 'trace_trial_1_179-229'
+      - 'trace_trial1_179-229.csv'
+    Returns (trial, start, end) inclusive.
+    """
+    stem = Path(name).stem  # drop extension
+    m = re.search(r"trace_trial_?(\d+)_(\d+)-(\d+)$", stem)
+    if not m:
+        raise ValueError(f"Unexpected test filename: {name!r}")
+    trial = int(m.group(1))
+    wstart = int(m.group(2))
+    wend = int(m.group(3))
+    if wstart > wend:
+        raise ValueError(f"Start > End in filename window: {name!r}")
+    return trial, wstart, wend
+
+
+def extract_trial_from_gt_filename(path: Path) -> Trial:
+    """
+    Try a few flexible patterns to get the trial number from a ground-truth filename.
+    Examples that will work:
+      - ground_truth_trial1.json
+      - gt_trial_2.json
+      - trial3_gt.json
+      - trial_4.json
+      - truth_t5.json   (t5 or trial5 supported)
+    """
+    candidates = [
+        r"trial_?(\d+)\.json$",
+        r"gt[_\-]?trial_?(\d+)\.json$",
+        r"ground[_\-]?truth[_\-]?trial_?(\d+)\.json$",
+        r"truth[_\-]?t(\d+)\.json$",
+        r".*trial_?(\d+).*\.json$",
+    ]
+    fname = path.name.lower()
+    for pat in candidates:
+        m = re.search(pat, fname)
+        if m:
+            return int(m.group(1))
+    raise ValueError(f"Could not infer trial number from ground-truth filename: {path}")
+
+
+# ---------------------------
+# Loaders
+# ---------------------------
+
+def load_ground_truth_dir(gt_dir: str) -> Dict[Trial, List[GTEntry]]:
+    """
+    Loads ALL *.json files in gt_dir and maps them to trials using filename parsing.
+    Each file should contain a JSON array: [[start, end, ..., ..., label], ...]
+    """
+    gt_by_trial: Dict[Trial, List[GTEntry]] = {}
+    for p in Path(gt_dir).glob("*.json"):
+        trial = extract_trial_from_gt_filename(p)
+        if trial in gt_by_trial:
+            raise ValueError(f"Multiple ground-truth files detected for trial {trial}: "
+                             f"{p} and {gt_by_trial[trial]}")
+        with p.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError(f"Ground-truth file must be a LIST of intervals: {p}")
+            gt_by_trial[trial] = data
+    if not gt_by_trial:
+        raise FileNotFoundError(f"No ground-truth JSON files found in: {gt_dir}")
+    return gt_by_trial
+
+
+def discover_test_files(test_dir: str) -> List[str]:
+    """
+    Return a list of test FILENAMES (as strings) found in test_dir that
+    look like 'trace_trial1_179-229' with any extension.
+    The returned items are the *basename* with extension (e.g., 'trace_trial1_179-229.txt').
+    """
+    out = []
+    for p in Path(test_dir).iterdir():
+        if not p.is_file():
+            continue
+        stem = p.stem
+        if re.search(r"trace_trial_?\d+_\d+-\d+$", stem):
+            out.append(p.name)  # keep name with extension; works with our parser
+    # if not out:
+    #     # raise FileNotFoundError(
+    #     #     f"No test files matching pattern 'trace_trial{n}_{start}-{end}' found in: {test_dir}"
+    #     # )
+    return sorted(out)
+
+
+# ---------------------------
+# Label builder + saver
+# ---------------------------
+
+def build_labels(
+    test_filenames: Iterable[Filename],
+    ground_truth_by_trial: Dict[Trial, List[GTEntry]],
+    positive_label_values: Tuple[int, ...] = (1,),
+) -> Dict[Filename, List[int]]:
+    """
+    For each test file window (inclusive), mark 1 if index falls in ANY GT interval whose label in positive_label_values.
+    ground_truth_by_trial: trial -> [[start, end, ..., ..., label], ...]
+    If an entry has fewer than 5 items, we assume [start, end] with label=1.
+    """
+    result: Dict[Filename, List[int]] = {}
+
+    for fname in test_filenames:
+        trial, wstart, wend = parse_test_filename(fname)
+        length = wend - wstart + 1
+        seq = [0] * length
+
+        intervals = ground_truth_by_trial.get(trial, [])
+        for entry in intervals:
+            start_i = int(entry[0])
+            end_i = int(entry[1])
+            lbl = int(entry[4]) if len(entry) >= 5 else 1
+            if lbl not in positive_label_values:
+                continue
+
+            # Intersection of [wstart, wend] with [start_i, end_i]
+            s = max(wstart, start_i)
+            e = min(wend, end_i)
+            if s <= e:
+                for idx in range(s, e + 1):  # inclusive
+                    seq[idx - wstart] = 1
+
+        result[fname] = seq
+
+    return result
+
+
+def save_labels_to_json(labels: Dict[Filename, List[int]], path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(labels, f, indent=2)
