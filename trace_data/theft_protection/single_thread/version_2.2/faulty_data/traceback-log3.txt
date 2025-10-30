@@ -1,7 +1,0 @@
-
- 18569331 
-Traceback (most recent call last):
-  File "main.py", line 145, in main
-  File "lib/varlogger.py", line 62, in log
-  File "lib/varlogger.py", line 74, in log_seq
-MemoryError: memory allocation failed, allocating 41956 bytes

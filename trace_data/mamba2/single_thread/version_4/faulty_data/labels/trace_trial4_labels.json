@@ -1,1 +1,0 @@
-{"metadata": {"behaviour": "faulty_data", "version": 4, "thread": "single_thread", "code": "mamba2", "path": "../trace_data/mamba2/single_thread/version_4/faulty_data/trace_trial4"}, "labels": {"trace_trial4": [[2465, 2722, 151367, 166762, 1], [3513, 3571, 215695, 219192, 2], [5000, 5023, 305727, 308483, 4], [6823, 6847, 416952, 418272, 4], [7788, 7815, 476760, 478853, 4]]}}

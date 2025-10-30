@@ -1,6 +1,0 @@
-
- 14519765 
-Traceback (most recent call last):
-  File "main.py", line 116, in main
-  File "main.py", line 227, in loracom
-NameError: name 'e' is not defined

@@ -1,4 +1,0 @@
-callback lora: 	24702
- failed AM2: [Errno 116] ETIMEDOUT	24793
- failed AM4: [Errno 116] ETIMEDOUT	24905
- failed AM3: [Errno 116] ETIMEDOUT	24966
