@@ -1,4 +1,4 @@
-# Dustminer : 
+# Dustminer
 
 DustMiner is a two-stage sequential pattern mining framework for **fault detection** in event logs. DustMiner is a diagnostic tool that leverages an extensible framework for uncovering root causes of
 failures and performance anomalies in wireless sensor network applications in an automated way.
