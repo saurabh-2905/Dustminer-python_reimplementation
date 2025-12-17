@@ -16,7 +16,57 @@ DustMiner/
 ├── README.md
 └── requirements.txt
 ```
+1. In libraries folder, we have utils.py file which contains helper functions like get_paths(), read_traces() which are used to make main implementation easier and to make code look clean.
+2. dustminer.ipynb - This jupyter notebook contains the main implementation of the Dustminer. For all the functions implemented, we have added the description there itself.
+3. dustminer_event_length.ipynb - This notebook almost looks like the dustminer.ipynb file but only change here is how we use the data to dustminer. Here we use different lengths to get more insights about the result.
+4. requirements.txt - This file contains all the required libraries to be installed in the system inorder to successfully use the implementation.
 
+### How to use the repository
+1. Install the required libraries using the command below.
+```
+pip install -r requirements.txt
+```
+2. Open the dustminer.ipynb file and ensure the data path are correct as per the implementation. If not then adjust accordingly.
+3. Here normalbase_path indicates normal train data path and faultybase_path indicates the test data path.
+4. The data we have is in the format [id,timestamp] as tuple so we use load_data() function to correctly pull out 'id' alone from tuple. Adjust the function accordingly if your data is not tuple.
+5. Set the values for MIN_SUP, SEGMENT_WIDTH, Normalize_support. In our scenario we used MIN_SUP=2, SEGMENT_WIDTH=50 and normalize support = True.
+6. Next we create a new file which is the ground truth file. Here we create in the below format.
+```
+{
+    "trace_trial1_1090-1140.json": [[12,6,7,8,9,6]],
+    "trace_trial1_1175-1225.json": [[9,6,7,8,6,7,8]],
+}
+```
+The ground truth file we had was for each trace_trial we had all the indices were the actual anomaly existed. So we need to extract them and create the new ground truth like below with each filename and then the actual anomaly sequence.  
+We have used get_ground_truth_file(), get_trace_info(), find_sequence_ground_truth(), create_labels() function to perform the same.
+8. Using mine_discriminative_patterns_progressive(), we compute the discriminative pattern which is the stage1. Here we need to pass good_seq, bad_seq, min_sup, theta(0.8), delta(0.8), k_start=1,k_max=length of S1 cartesian, normalize, repeated_event_id.
+```
+good_sequence = [[6,7,8,9,6,7,8,9,10,11,12],[6,7,8,9,10,11,12,13,6,7,8,6,7,8,9]]
+bad_sequence = [[6,7,8,9,6,7,8,7,9,10],[6,7,8,9,10,11,12]]
+discriminative_patterns = mine_discriminative_patterns_progressive(good_sequences,bad_sequences,min_sup=7,theta=0.8, delta=0.8, k_start=1,k_max=k_max_1,stop_when_found=False,normalize=True,repeated_event_id=False)
+```
+These are the values we have used for theta, delta.
+9. Now when we print the discriminative patterns, we could see like below.
+```
+(23, 24, 49, 56, 57, 65, 70, 71): {'bad': 0.0167548031686215,'good': 0.010874626452331941,'delta': 0.00588017671628956},
+```
+10. Once discriminative patterns are ready, we proceed with stage2 mining. Here the main idea is again mining only in the area of discriminative patterns inorder to get more clarity in the root cause pattern.
+11. Using the function stage2_patterns(), we perform stage2 mining.
+```
+stage2_patterns = stage2_mining(bad_seqs=bad_sequences,discriminative_patterns=discriminative_patterns,seg_width=50,top_k=5,max_len_stage2=None,overlap=False)
+```
+Here we need to pass bad_sequence, discriminative_patterns, seg_width=50(default), top_k=5.
+```
+Pattern	                                                Support
+0	(53, 54, 55, 56, 57, 58, 59, 20, 21, 22, 49)	         66
+1	(60, 61, 49, 57, 62)	                                 66
+```
+13. Once stage2 patterns are completed. Then we proceed in calculating the precision, recall and F1 score by comparing the dustminer results with ground truth we already know.
+14. Now we iterate the ground truth with filename as key and check if the sequence has a perfect match with any dustminer result sequences or having atleast 60% match with continous match and it should be nonoverlapping then it is marked as 'True positive'.
+15. Here when have a True positive, then rest all the sequences are marked as False positive. Also, when no match at all for a test file then we have a False negative count and rest of sequences are marked as False positive.
+16. Then we calculate classwise detections for going into more analysis.
+17. Also, the code in the last cell is used to identify the errors we detected are localized one's or not. We take the count to observe among the detected ones how many are with exactly one occurence. This gives more insights about the dustminer results.
+   
 ## **Implementation & Alogrithms**
 #### **First stage is Discriminative pattern mining**
 1. At first, the tool will use a data collection frontend and collect runtime events for post mortem analysis.
@@ -117,13 +167,3 @@ Length 3: A-B-C
 10. Now we get the final pattern list which is the most likely root cause patterns.
 
 
-### How to use the repository
-1. Install the required libraries using the command below.
-```
-pip install -r requirements.txt
-```
-2. Adjust the variable normalbase_path and faultybase_path according to the folder structure your data files.
-3. In the current implementation, the data format is [[id, timestamp],[],....]. 
-4. MIN_SUP = 2, SEGMENT_WIDTH = 50 are default values.
-5. Now once the data loading is correct, then run each cell one by one in the notebook.
-   
